@@ -59,6 +59,13 @@ main{max-width:680px;padding:14px 24px 60px}
 .tag{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:3px;padding:0 5px;margin-right:6px;color:var(--sub)}
 .pg{display:flex;gap:14px;color:var(--link);font-size:15px;margin-top:10px}
 .pg span:first-child{color:var(--fg);font-weight:700}
+.sp{padding-top:6px}
+.sp .lab{font-size:13px;color:var(--sub);margin-bottom:14px}
+.sp .imgs{display:flex;gap:14px;flex-wrap:wrap}
+.sp img{max-width:100%;max-height:520px;border-radius:10px;display:block}
+.sp .imgs.two img{max-width:calc(50% - 7px)}
+.sp .msg{font-size:26px;line-height:1.7;font-weight:700;padding:28px 26px;border:1px solid var(--line);border-radius:14px;max-width:560px}
+.sp .msg small{display:block;margin-top:10px;font-size:14px;font-weight:400;color:var(--sub)}
 </style>
 </head>
 <body>
@@ -163,12 +170,47 @@ function buildReport(){
   return others;
 }
 
+/* ===== 특별 검색어 (이름을 검색하면 이미지/메시지가 뜹니다) =====
+   keys: 검색어에 이 글자가 들어 있으면 작동 (띄어쓰기 무시)
+   imgs: images 폴더 안의 파일명 / msg: 표시할 메시지(줄바꿈은 배열로) */
+var SPECIAL = [
+  { keys:["김예림"], imgs:["images/images.jpeg"] },
+  { keys:["류태영"], imgs:["images/images2.png"] },
+  { keys:["강성은"], imgs:["images/image3.jpeg","images/images4.jpeg"] },
+  { keys:["강주은","박채영"], msg:["배우님들 감사합니다.","오늘 촬영 잘 부탁드리고..","류태영 WS2 화이팅!"] }
+];
+function renderSpecial(term){
+  var flat = term.replace(/\s+/g,"");
+  var pg = document.querySelector(".pg");
+  for(var i=0;i<SPECIAL.length;i++){
+    var s = SPECIAL[i];
+    if(s.keys.some(function(k){return flat.indexOf(k)>-1})){
+      var html = '<div class="sp">';
+      if(s.imgs){
+        html += '<div class="imgs'+(s.imgs.length>1?' two':'')+'">'+s.imgs.map(function(p){return '<img src="'+p+'" alt="">'}).join("")+'</div>';
+      } else {
+        html += '<div class="msg">'+s.msg.join("<br>")+'</div>';
+      }
+      html += '</div>';
+      document.getElementById("cnt").textContent = s.imgs ? "'"+term+"' 이미지 검색결과" : "";
+      document.getElementById("list").innerHTML = html;
+      pg.style.display = "none";
+      document.title = term+" - 구굴 검색";
+      window.scrollTo(0,0);
+      return true;
+    }
+  }
+  pg.style.display = "";
+  return false;
+}
+
 /* ===== 동작 ===== */
 var ico='<svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3A6.5 6.5 0 1 0 14 15.5l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg>';
 var home=document.getElementById("home"), res=document.getElementById("res");
 function esc(s){return s.replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
 
 function render(term){
+  if(renderSpecial(term)) return;
   var isReport = term.replace(/\s+/g,"") === TRIGGER;
   var data = isReport ? buildReport() : buildJunk(term);
   document.getElementById("cnt").textContent = "'"+term+"' 검색결과 약 "+rnd(isReport?1500:2800, isReport?2400:4200)+"개 (0."+rnd(28,57)+"초)";
