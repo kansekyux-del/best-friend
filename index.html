@@ -66,6 +66,26 @@ main{max-width:680px;padding:14px 24px 60px}
 .sp .imgs.two img{max-width:calc(50% - 7px)}
 .sp .msg{font-size:26px;line-height:1.7;font-weight:700;padding:28px 26px;border:1px solid var(--line);border-radius:14px;max-width:560px}
 .sp .msg small{display:block;margin-top:10px;font-size:14px;font-weight:400;color:var(--sub)}
+
+/* ===== B급 메시지 애니메이션 ===== */
+.sp .bmsg{position:relative;overflow:hidden;max-width:600px;padding:54px 26px 34px;border:3px dashed #ff3d7f;border-radius:18px;background:#fff;color:#202124;box-shadow:0 4px 18px rgba(0,0,0,.12);font-size:17px;font-weight:500;line-height:1.75}
+.bmsg .ln{margin:0 0 14px;opacity:0;transform:scale(.3) rotate(-8deg);animation:bPop .55s cubic-bezier(.2,1.8,.4,1) forwards}
+.bmsg .ln:nth-child(even){transform:scale(.3) rotate(8deg) translateX(40px)}
+.bmsg .hi{font-size:30px;font-weight:900;color:#ff3d7f;text-shadow:3px 3px 0 #ffe600,6px 6px 0 rgba(0,0,0,.15);display:inline-block;animation:bWob 1.2s ease-in-out infinite}
+.bmsg .em{background:linear-gradient(transparent 55%,#ffe600 55%);color:#202124;font-weight:800;padding:0 2px}
+.bmsg .cold{display:inline-block;animation:bShiver .12s linear infinite}
+.bmsg .fin{margin-top:22px;font-size:26px;font-weight:900;text-align:center;line-height:1.4}
+.bmsg .fin span{display:inline-block;animation:bJump .8s ease-in-out infinite,bRain 1.6s linear infinite}
+.bmsg .stamp{position:absolute;right:14px;top:14px;font-size:13px;font-weight:900;color:#e0002a;border:3px solid #e0002a;border-radius:6px;padding:2px 8px;transform:rotate(14deg) scale(3);opacity:0;animation:bStamp .35s ease-in forwards}
+.bconf{position:fixed;top:-40px;font-size:26px;pointer-events:none;z-index:99;animation:bFall linear forwards}
+@keyframes bPop{to{opacity:1;transform:none}}
+@keyframes bWob{0%,100%{transform:rotate(-3deg) scale(1)}50%{transform:rotate(3deg) scale(1.08)}}
+@keyframes bShiver{0%{transform:translate(0,0)}25%{transform:translate(1px,-1px)}50%{transform:translate(-1px,1px)}75%{transform:translate(1px,1px)}}
+@keyframes bJump{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-12px) rotate(-6deg)}60%{transform:translateY(2px) rotate(4deg)}}
+@keyframes bRain{0%{color:#ff3d7f}20%{color:#ff9500}40%{color:#e6c200}60%{color:#00b86b}80%{color:#2f7bff}100%{color:#ff3d7f}}
+@keyframes bStamp{to{opacity:.9;transform:rotate(14deg) scale(1)}}
+@keyframes bFall{to{transform:translateY(110vh) rotate(720deg)}}
+@media (prefers-reduced-motion:reduce){.bmsg .ln,.bmsg .stamp{animation:none;opacity:1;transform:none}.bmsg .hi,.bmsg .cold,.bmsg .fin span{animation:none}.bconf{display:none}}
 </style>
 </head>
 <body>
@@ -177,8 +197,40 @@ var SPECIAL = [
   { keys:["김예림"], imgs:["images.jpeg"] },
   { keys:["류태영"], imgs:["images2.png"] },
   { keys:["강성은"], imgs:["image3.jpeg","images4.jpeg"] },
-  { keys:["강주은","박채영"], msg:["배우님들 감사합니다.","오늘 촬영 잘 부탁드리고..","류태영 WS2 화이팅!"] }
+  { keys:["강주은","박채영"], bmsg:[
+      '<span class="hi">배우님들 안녕하세요!! 🙌</span>',
+      '이른 시간부터 현장에 와 주셔서 <span class="em">정말 감사합니다.</span> 바쁘신 와중에도 저희 작품에 함께해 주셔서 스태프 모두 든든한 마음으로 오늘을 맞이하고 있어요.',
+      '오늘부터 드디어 <span class="em">&lt;베스트 프렌드&gt;</span> 촬영이 시작되는데요! 🎬',
+      '촬영하시다가 불편한 점이나 필요한 게 있으시면 언제든 편하게 말씀해 주세요! 날이 많이 <span class="cold">쌀쌀하니</span> 🥶 대기하실 때 따뜻하게 계시고, 컨디션 꼭 잘 챙기셔요..',
+      '오늘 하루 길고 바쁘겠지만, 다 같이 즐겁게, 다치는 사람 없이, 좋은 장면 많이 담아 갔으면 좋겠습니다. <span class="em">오늘 촬영 잘 부탁드립니다!!</span>'
+    ], fin:"류태영 WS2 <베스트 프렌드> 화이팅!입니닷!!" }
 ];
+/* B급 메시지: 줄마다 튀어나오고, 마지막 화이팅은 글자별로 통통 */
+function buildBMsg(s){
+  var step = 450, out = '<div class="bmsg">';
+  out += s.bmsg.map(function(t,i){return '<p class="ln" style="animation-delay:'+(i*step)+'ms">'+t+'</p>'}).join("");
+  var d = s.bmsg.length*step;
+  out += '<p class="ln fin" style="animation-delay:'+d+'ms">'+Array.from(s.fin).map(function(c,i){
+    return c===" " ? " " : '<span style="animation-delay:'+(i*60)+'ms,'+(i*80)+'ms">'+esc(c)+'</span>';
+  }).join("")+'</p>';
+  out += '<div class="stamp" style="animation-delay:'+(d+500)+'ms">미술팀 인증 ✔</div>';
+  return out + '</div>';
+}
+function confetti(delay){
+  if(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  var e = ["🎬","✨","🔥","🎉","💖","📣","🌟","🍀"];
+  setTimeout(function(){
+    for(var i=0;i<36;i++){
+      var c=document.createElement("div"); c.className="bconf";
+      c.textContent=e[i%e.length];
+      c.style.left=(Math.random()*100)+"vw";
+      c.style.animationDuration=(2+Math.random()*2.5)+"s";
+      c.style.animationDelay=(Math.random()*1.2)+"s";
+      document.body.appendChild(c);
+      setTimeout(function(n){return function(){n.remove()}}(c),6000);
+    }
+  }, delay);
+}
 function renderSpecial(term){
   var flat = term.replace(/\s+/g,"");
   var pg = document.querySelector(".pg");
@@ -188,6 +240,8 @@ function renderSpecial(term){
       var html = '<div class="sp">';
       if(s.imgs){
         html += '<div class="imgs'+(s.imgs.length>1?' two':'')+'">'+s.imgs.map(function(p){return '<img src="'+p+'" alt="">'}).join("")+'</div>';
+      } else if(s.bmsg){
+        html += buildBMsg(s);
       } else {
         html += '<div class="msg">'+s.msg.join("<br>")+'</div>';
       }
@@ -197,6 +251,7 @@ function renderSpecial(term){
       pg.style.display = "none";
       document.title = term+" - 구굴 검색";
       window.scrollTo(0,0);
+      if(s.bmsg) confetti(s.bmsg.length*450+600);
       return true;
     }
   }
